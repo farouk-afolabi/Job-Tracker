@@ -1,23 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getJobs } from './features/jobs/jobSlice';
+import Header from './components/Header';
+import JobList from './components/JobList';
+import Spinner from './components/Spinner';
 
 function App() {
+  const dispatch = useDispatch();
+  const { jobs, isLoading } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(getJobs());
+  }, [dispatch]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Header />
+      <main>
+        {isLoading ? <Spinner /> : <JobList jobs={jobs} />}
+      </main>
     </div>
   );
 }
