@@ -29,23 +29,22 @@ export const createJob = createAsyncThunk(
 );
 
 // Get user jobs
-export const getJobs = createAsyncThunk(
-  'jobs/getAll',
-  async (_, thunkAPI) => {
-    try {
-      const token = thunkAPI.getState().auth.user.token;
-      return await jobService.getJobs(token);
-    } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-      return thunkAPI.rejectWithValue(message);
+export const getJobs = createAsyncThunk('jobs/getAll', async (_, thunkAPI) => {
+  try {
+    const state = thunkAPI.getState();
+    const token = state.auth.user?.token;
+
+    if (!token) {
+      return thunkAPI.rejectWithValue('User not authenticated');
     }
+
+    const response = await jobService.getJobs(token); // send token to backend
+    return response;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
+
 
 // Update job
 export const updateJob = createAsyncThunk(

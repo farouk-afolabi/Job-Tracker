@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getJobs, reset } from '../features/jobs/jobSlice';
 import Spinner from './Spinner';
-import JobList from './JobList';  
+import JobList from './JobList';
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -16,12 +16,15 @@ function Dashboard() {
       console.log(message);
     }
 
-    dispatch(getJobs());
+    // Only fetch jobs if user exists and is authenticated
+    if (user?.token) {
+      dispatch(getJobs());
+    }
 
     return () => {
       dispatch(reset());
     };
-  }, [isError, message, dispatch]);
+  }, [user, isError, message, dispatch]); // Added 'user' to dependencies
 
   if (isLoading) {
     return <Spinner />;
@@ -30,13 +33,13 @@ function Dashboard() {
   return (
     <>
       <section className='heading'>
-        <h1>Welcome {user && user.name}</h1>
+        <h1>Welcome {user?.name || 'User'}</h1>
         <p>Jobs Dashboard</p>
       </section>
 
       <section className='content'>
-        {jobs.length > 0 ? (
-          <JobList jobs={jobs} />  
+        {jobs?.length > 0 ? (
+          <JobList jobs={jobs} />
         ) : (
           <h3>You have not added any jobs</h3>
         )}
