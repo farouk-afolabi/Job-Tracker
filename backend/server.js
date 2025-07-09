@@ -12,13 +12,12 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.get('/', (req, res) => {
-    res.send('Job Tracker API is running!');
-  });
+
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/jobs', require('./routes/jobs'));
+app.use('/api/job-search', require('./routes/jobSearch'));
 
 // Error handling
 app.use(errorHandler);
