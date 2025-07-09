@@ -10,7 +10,7 @@ const connectDB = async () => {
   }
 };
 
-// MongoDB event listeners (optional but recommended)
+// MongoDB event listeners 
 mongoose.connection.on('connected', () => {
   console.log('Mongoose connected to DB');
 });
