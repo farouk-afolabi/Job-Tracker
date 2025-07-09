@@ -1,58 +1,87 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const errorHandler = require('./middleware/errorHandler');
+const axios = require('axios');
 
-// Initialize Express app
 const app = express();
-
-// Database Connection
-connectDB().catch(err => {
-  console.error('Database connection failed:', err);
-  process.exit(1);
-});
-
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Health Check Endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK', dbState: mongoose.connection.readyState });
-});
+// Adzuna API Configuration
+const ADZUNA_BASE_URL = 'https://api.adzuna.com/v1/api/jobs/ca';
+const ADZUNA_ID = process.env.ADZUNA_APP_ID;
+const ADZUNA_KEY = process.env.ADZUNA_APP_KEY;
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/jobs', require('./routes/jobs'));
-app.use('/api/job-search', require('./routes/jobSearch'));
+// Cache setup
+let jobCache = {
+  data: null,
+  lastUpdated: null,
+  ttl: 30 * 60 * 1000 // 30 minutes
+};
 
-// Error Handling (must be last middleware)
-app.use(errorHandler);
-
-// Server Setup
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  server.close(() => process.exit(1));
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
+// Fetch jobs from Adzuna
+const fetchAdzunaJobs = async (params = {}) => {
+  try {
+    const response = await axios.get(`${ADZUNA_BASE_URL}/search/1`, {
+      params: {
+        app_id: ADZUNA_ID,
+        app_key: ADZUNA_KEY,
+        results_per_page: 50,
+        sort_by: 'date',
+        where: 'Canada',
+        ...params
+      }
     });
-  });
+    return response.data.results;
+  } catch (error) {
+    console.error('Adzuna API error:', error.message);
+    throw error;
+  }
+};
+
+// API Endpoint
+app.get('/api/jobs', async (req, res) => {
+  try {
+    // Check cache first
+    if (jobCache.data && Date.now() - jobCache.lastUpdated < jobCache.ttl) {
+      return res.json(jobCache.data);
+    }
+    
+    // Get query parameters
+    const { q: query, location, salary_min } = req.query;
+    
+    // Fetch fresh data
+    const jobs = await fetchAdzunaJobs({
+      what: query,
+      where: location,
+      salary_min: salary_min
+    });
+    
+    // Update cache
+    jobCache = {
+      data: jobs,
+      lastUpdated: Date.now(),
+      ttl: 30 * 60 * 1000
+    };
+    
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
 });
+
+// Province-based filtering
+app.get('/api/jobs/province/:province', async (req, res) => {
+  try {
+    const { province } = req.params;
+    const jobs = await fetchAdzunaJobs({
+      where: province
+    });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
