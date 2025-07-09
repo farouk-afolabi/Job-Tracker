@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getJobs, reset } from '../features/jobs/jobSlice';
-import Spinner from '../components/Spinner';
-import JobItem from './JobItem';
+import Spinner from './Spinner';
+import JobList from './JobList';  
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -36,11 +36,7 @@ function Dashboard() {
 
       <section className='content'>
         {jobs.length > 0 ? (
-          <div className='jobs'>
-            {jobs.map((job) => (
-              <JobItem key={job._id} job={job} />
-            ))}
-          </div>
+          <JobList jobs={jobs} />  
         ) : (
           <h3>You have not added any jobs</h3>
         )}

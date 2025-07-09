@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createJob, updateJob, reset } from '../features/jobs/jobSlice';
-import Spinner from '../components/Spinner';
+import Spinner from './Spinner';
 
 function JobForm({ job }) {
   const [formData, setFormData] = useState({
