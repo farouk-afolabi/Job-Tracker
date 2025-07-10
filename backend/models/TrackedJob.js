@@ -1,13 +1,5 @@
 const mongoose = require('mongoose');
 
-const StatusEnum = {
-  INTERESTED: 'interested',
-  APPLIED: 'applied',
-  INTERVIEW: 'interview',
-  OFFER: 'offer',
-  REJECTED: 'rejected'
-};
-
 const TrackedJobSchema = new mongoose.Schema({
   adzunaId: {
     type: String,
@@ -28,17 +20,19 @@ const TrackedJobSchema = new mongoose.Schema({
   url: String,
   status: {
     type: String,
-    enum: Object.values(StatusEnum),
-    default: StatusEnum.INTERESTED
+    enum: ['interested', 'applied', 'interview', 'offer', 'rejected'],
+    default: 'interested'
   },
   notes: String,
-  appliedDate: Date,
   interviewDate: Date,
   user: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   }
 }, { timestamps: true });
+
+// Prevent duplicate tracking
+TrackedJobSchema.index({ adzunaId: 1, user: 1 }, { unique: true });
 
 module.exports = mongoose.model('TrackedJob', TrackedJobSchema);

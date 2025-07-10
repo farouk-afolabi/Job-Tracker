@@ -1,11 +1,20 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const axios = require('axios');
 
+// Initialize Express
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Database Connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Adzuna API Configuration
 const ADZUNA_BASE_URL = 'https://api.adzuna.com/v1/api/jobs/ca';
@@ -18,6 +27,10 @@ let jobCache = {
   lastUpdated: null,
   ttl: 30 * 60 * 1000 // 30 minutes
 };
+
+// Models
+const User = require('./models/User');
+const TrackedJob = require('./models/TrackedJob');
 
 // Fetch jobs from Adzuna
 const fetchAdzunaJobs = async (params = {}) => {
@@ -39,7 +52,16 @@ const fetchAdzunaJobs = async (params = {}) => {
   }
 };
 
-// API Endpoint
+// ======================
+// API Endpoints
+// ======================
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
+});
+
+// Public Job Search
 app.get('/api/jobs', async (req, res) => {
   try {
     // Check cache first
@@ -47,10 +69,7 @@ app.get('/api/jobs', async (req, res) => {
       return res.json(jobCache.data);
     }
     
-    // Get query parameters
     const { q: query, location, salary_min } = req.query;
-    
-    // Fetch fresh data
     const jobs = await fetchAdzunaJobs({
       what: query,
       where: location,
@@ -81,6 +100,111 @@ app.get('/api/jobs/province/:province', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch jobs' });
   }
+});
+
+// ======================
+// Authentication Routes
+// ======================
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // Create user
+    const user = await User.create({ name, email, password });
+    res.status(201).json({ user: { id: user._id, name: user.name } });
+  } catch (error) {
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token (simplified)
+    const token = user.generateJWT();
+    res.json({ token, user: { id: user._id, name: user.name } });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// ======================
+// Protected Job Tracking Routes
+// ======================
+
+const authenticate = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    // Verify token (simplified)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.userId);
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+app.post('/api/jobs/track', authenticate, async (req, res) => {
+  try {
+    const { adzunaId, title, company, location, description, salaryMin, salaryMax, url } = req.body;
+    
+    // Check if already tracked
+    const existingJob = await TrackedJob.findOne({ 
+      adzunaId,
+      user: req.user._id 
+    });
+    
+    if (existingJob) {
+      return res.status(400).json({ error: 'Job already tracked' });
+    }
+
+    const job = await TrackedJob.create({
+      adzunaId,
+      title,
+      company,
+      location,
+      description,
+      salaryMin,
+      salaryMax,
+      url,
+      user: req.user._id,
+      status: 'interested'
+    });
+
+    res.status(201).json(job);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to track job' });
+  }
+});
+
+app.get('/api/jobs/tracked', authenticate, async (req, res) => {
+  try {
+    const jobs = await TrackedJob.find({ user: req.user._id });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch tracked jobs' });
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 5000;

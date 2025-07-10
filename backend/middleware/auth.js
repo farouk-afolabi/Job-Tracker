@@ -1,31 +1,22 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { UnauthenticatedError } = require('../errors');
 
-// Protect routes - verify JWT
-const protect = async (req, res, next) => {
-  let token;
-
-  // 1. Get token from header
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1]; // Format: "Bearer <token>"
+const authenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthenticatedError('Authentication invalid');
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
-  }
-
+  const token = authHeader.split(' ')[1];
+  
   try {
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 3. Attach user to request object (excluding password)
-    req.user = await User.findById(decoded.id).select('-password');
-
-    next(); // Proceed to the next middleware/controller
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { userId: payload.userId, name: payload.name };
+    next();
   } catch (error) {
-    console.error(error);
-    res.status(401).json({ message: 'Not authorized, token failed' });
+    throw new UnauthenticatedError('Authentication invalid');
   }
 };
 
-module.exports = { protect };
+module.exports = authenticate;

@@ -5,11 +5,11 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';  
-import Login from './components/Login';     
-import Register from './components/Register';  
+import Login from './components/auth/Login';     
+import Register from './components/auth/Register';  
 import JobForm from './components/JobForm';
 import JobSearch from './components/JobSearch';
-import Spinner from './components/Spinner';
+import Spinner from './components/ui/Spinner';
 import { getJobs, reset as resetJobs } from './features/jobs/jobSlice';
 import { reset as resetAuth } from './features/auth/authSlice';
 
