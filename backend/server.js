@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
-const jwt = require('jsonwebtoken'); // Add this import
+const jwt = require('jsonwebtoken'); 
 
 // Initialize Express
 const app = express();
