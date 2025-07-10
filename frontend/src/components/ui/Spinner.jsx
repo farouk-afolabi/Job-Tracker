@@ -1,11 +1,18 @@
+import { Box, CircularProgress } from '@mui/material';
+
 const Spinner = () => {
-    return (
-      <div className="spinner-overlay">
-        <div className="spinner-container">
-          <div className="loading-spinner"></div>
-        </div>
-      </div>
-    );
-  };
-  
-  export default Spinner;
+  return (
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '200px' 
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  );
+};
+
+export default Spinner;

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button, AppBar, Toolbar, Typography } from '@mui/material';
 
-export default function Navbar() {
+export default function NavBar() {
   const { user, logout } = useAuth();
 
   return (
@@ -15,8 +15,8 @@ export default function Navbar() {
         </Typography>
         {user ? (
           <>
-            <Button color="inherit" component={Link} to="/profile">
-              Profile
+            <Button color="inherit" component={Link} to="/dashboard">
+              Dashboard
             </Button>
             <Button color="inherit" onClick={logout}>
               Logout
