@@ -1,93 +1,57 @@
-# 📘 Job Tracker App (React)
+#  Job Tracker - Full Stack Application
 
-A modern, responsive web app to help users **track their job applications**, stay organized, and gain insights into their job search process. Built with React and designed for both personal use and professional portfolios.
+A modern, full-stack job tracking application that helps users search for jobs, track applications, and manage their job search process. Built with React frontend and Node.js backend, featuring real-time job data from the Adzuna API.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- ✅ Add, edit, and delete job applications
-- 🎯 Track job status (Applied, Interview, Offer, Rejected)
-- 🏢 Store details: Company, Position, Date Applied, Notes
-- 🔍 Search, filter, and sort job applications
-- 📂 Persistent storage via `localStorage`
-- 🧩 Modular component structure
-- 💻 Responsive UI design
+### 🔐 Authentication & User Management
+- **User Registration & Login** - Secure JWT-based authentication
+- **Protected Routes** - Automatic redirect to login for unauthenticated users
+- **Session Management** - Persistent login state with token storage
 
-> **Planned Advanced Features:**
-> - 🔐 Authentication (e.g., Firebase Auth)
-> - ☁️ Backend with database integration (Node.js + MongoDB/PostgreSQL)
-> - 📊 Analytics dashboard (charts, trends)
-> - 📧 Email reminders for follow-ups
+### 🔍 Job Search & Discovery
+- **Real-time Job Search** - Powered by Adzuna API with live job listings
+- **Advanced Filtering** - Filter by keywords, location, salary range, and job type
+- **Job Details** - View comprehensive job information including company, location, and salary
+
+### 📋 Job Tracking & Management
+- **Track Jobs** - Save interesting jobs to your personal tracking list
+- **Status Management** - Update job status (Interested, Applied, Interview, Offer, Rejected)
+- **Notes & Comments** - Add personal notes and comments to tracked jobs
+- **Interview Scheduling** - Set interview dates and reminders
+- **Job Actions** - View original job posting and manage tracked jobs
+
+### 🎨 Modern UI/UX
+- **Material-UI Design** - Clean, modern interface with consistent styling
+- **Responsive Layout** - Works perfectly on desktop, tablet, and mobile
+- **Interactive Components** - Smooth animations and hover effects
+- **Dark/Light Theme** - Customizable theme with professional color scheme
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category       | Tech Used                        |
-|----------------|----------------------------------|
-| Frontend       | React, React Hooks, Context API  |
-| Styling        | Tailwind CSS / CSS Modules       |
-| State Storage  | localStorage (MVP)               |
-| Deployment     | Vercel / Netlify                 |
-| Version Control| Git + GitHub                     |
-| Optional       | Firebase, Node.js, Express       |
+### Frontend
+- **React 19** - Modern React with hooks and functional components
+- **Material-UI** - Professional UI component library
+- **React Router** - Client-side routing and navigation
+- **Context API** - State management for authentication and user data
+- **Fetch API** - Modern HTTP client for API communication
+
+### Backend
+- **Node.js** - Server-side JavaScript runtime
+- **Express.js** - Fast, unopinionated web framework
+- **MongoDB** - NoSQL database for data persistence
+- **Mongoose** - MongoDB object modeling for Node.js
+- **JWT** - JSON Web Tokens for secure authentication
+- **bcryptjs** - Password hashing and security
+- **Axios** - HTTP client for external API calls
+
+### External APIs
+- **Adzuna API** - Real-time job listings and search
 
 ---
 
-## 📁 Folder Structure
-
-src/
-├── components/
-│ ├── JobList.jsx
-│ ├── JobForm.jsx
-│ ├── StatusFilter.jsx
-│ ├── SearchBar.jsx
-│ └── JobDetails.jsx
-├── context/
-│ └── JobContext.js
-├── pages/
-│ └── Home.jsx
-├── styles/
-│ └── App.css
-└── App.jsx
-
-
-
----
-
-## 💻 Getting Started
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/job-tracker-react.git
-cd job-tracker-react
-
-### 2. Install Dependencies
-npm install
-### 3. Run Locally
-npm start
-The app should open at http://localhost:3000.
-
-📦 Deployment
-This app is deployed on Vercel (or Netlify).
-Visit the live app 👉 your-live-link.com
-
-To deploy:
-
-Push your code to GitHub
-
-Link your GitHub repo to Vercel or Netlify
-
-Set your build command: npm run build
-
-Set your output directory: build/
-
-📄 License
-This project is open-source and available under the MIT License.
-
-🙋‍♂️ Author
-Farouk Afolabi
-faroukafolabi.com
-LinkedIn
+## 📁 Project Structure
