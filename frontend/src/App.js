@@ -1,57 +1,63 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Header from './components/Header';
-import Dashboard from './components/Dashboard';  
-import Login from './components/auth/Login';     
-import Register from './components/auth/Register';  
-import JobForm from './components/JobForm';
-import JobSearch from './components/JobSearch';
-import Spinner from './components/ui/Spinner';
-import { getJobs, reset as resetJobs } from './features/jobs/jobSlice';
-import { reset as resetAuth } from './features/auth/authSlice';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { AuthProvider } from './context/AuthContext';
+import NavBar from './components/layout/NavBar';
+import ProtectedRoute from './components/layout/ProtectedRoutes';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import JobBoard from './components/jobs/JobBoard';
+import { Container, Box } from '@mui/material';
+import theme from './theme';
 
 function App() {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const { isLoading } = useSelector((state) => state.jobs);
-
-  // Clear all states when component unmounts
-  useEffect(() => {
-    return () => {
-      dispatch(resetJobs());
-      dispatch(resetAuth());
-    };
-  }, [dispatch]);
-
-  // Load jobs when user is authenticated
-  useEffect(() => {
-    if (user) {
-      dispatch(getJobs());
-    }
-  }, [user, dispatch]);
-
   return (
-    <Router>
-      <div className="app">
-        <Header />
-        <main>
-          {isLoading && <Spinner />}
-          <ToastContainer position="top-right" autoClose={3000} />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/add-job" element={<JobForm />} />
-            <Route path="/edit-job/:id" element={<JobForm />} />
-            <Route path="/job-search" element={<JobSearch />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <Router>
+          <Box 
+            sx={{ 
+              minHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: 'background.default'
+            }}
+          >
+            <NavBar />
+            <Container 
+              maxWidth="lg" 
+              sx={{ 
+                mt: 3, 
+                mb: 3, 
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              <Routes>
+                {/* Redirect root to dashboard */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <JobBoard />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Catch all route - redirect to dashboard */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Container>
+          </Box>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
