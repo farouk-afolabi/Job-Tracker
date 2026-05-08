@@ -14,7 +14,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
+      <Router basename={process.env.PUBLIC_URL}>
         <AuthProvider>
           <Box 
             sx={{ 
