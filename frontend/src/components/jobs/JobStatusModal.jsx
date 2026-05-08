@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useState } from 'react';
-=======
 import { useState, useEffect } from 'react';
->>>>>>> Fix broken features, security hardening, and UI consistency
 import {
   Modal,
   Box,
@@ -26,9 +22,6 @@ const statusOptions = [
 export default function JobStatusModal({ open, onClose, job, onSave }) {
   const [status, setStatus] = useState(job.status);
   const [notes, setNotes] = useState(job.notes || '');
-<<<<<<< HEAD
-  const [interviewDate, setInterviewDate] = useState(job.interviewDate || '');
-=======
   const [interviewDate, setInterviewDate] = useState('');
 
   // Sync form state whenever the modal opens or the job changes.
@@ -42,7 +35,6 @@ export default function JobStatusModal({ open, onClose, job, onSave }) {
         : ''
     );
   }, [job, open]);
->>>>>>> Fix broken features, security hardening, and UI consistency
 
   const handleSubmit = () => {
     onSave({
@@ -55,7 +47,7 @@ export default function JobStatusModal({ open, onClose, job, onSave }) {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={{ 
+      <Box sx={{
         position: 'absolute',
         top: '50%',
         left: '50%',
@@ -69,7 +61,7 @@ export default function JobStatusModal({ open, onClose, job, onSave }) {
         <Typography variant="h6" gutterBottom>
           Update Job Status
         </Typography>
-        
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Status</InputLabel>
           <Select

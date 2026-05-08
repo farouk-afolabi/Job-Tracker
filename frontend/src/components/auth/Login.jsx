@@ -1,31 +1,17 @@
 import { useState } from 'react';
-<<<<<<< HEAD
-import { useAuth } from '../../context/AuthContext';
-import { TextField, Button, Container, Box, Typography } from '@mui/material';
-=======
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { TextField, Button, Container, Box, Typography, CircularProgress } from '@mui/material';
->>>>>>> Fix broken features, security hardening, and UI consistency
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-<<<<<<< HEAD
-=======
   const [loading, setLoading] = useState(false);
->>>>>>> Fix broken features, security hardening, and UI consistency
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
-    try {
-      await login(email, password);
-    } catch (err) {
-      setError('Invalid email or password');
-=======
     setError('');
     setLoading(true);
     try {
@@ -34,17 +20,11 @@ export default function Login() {
       setError(err.message);
     } finally {
       setLoading(false);
->>>>>>> Fix broken features, security hardening, and UI consistency
     }
   };
 
   return (
     <Container maxWidth="sm">
-<<<<<<< HEAD
-      <Box sx={{ mt: 8, p: 4, boxShadow: 3 }}>
-        <Typography variant="h4" gutterBottom>Login</Typography>
-        {error && <Typography color="error">{error}</Typography>}
-=======
       <Box sx={{ mt: 8, p: 4, boxShadow: 3, borderRadius: 2 }}>
         <Typography variant="h4" gutterBottom>Login</Typography>
 
@@ -54,7 +34,6 @@ export default function Login() {
           </Typography>
         )}
 
->>>>>>> Fix broken features, security hardening, and UI consistency
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -74,21 +53,6 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-<<<<<<< HEAD
-          <Button 
-            fullWidth 
-            variant="contained" 
-            type="submit"
-            sx={{ mt: 3 }}
-          >
-            Login
-          </Button>
-        </form>
-      </Box>
-    </Container>
-  );
-}
-=======
           <Button
             fullWidth
             variant="contained"
@@ -108,4 +72,3 @@ export default function Login() {
     </Container>
   );
 }
->>>>>>> Fix broken features, security hardening, and UI consistency

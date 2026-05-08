@@ -57,17 +57,10 @@ export default function TrackedJobCard({ job, onUpdate, onDelete }) {
             </Box>
             
             {onDelete && (
-<<<<<<< HEAD
-              <IconButton 
-                color="error" 
-                size="small"
-                onClick={() => onDelete(job.id)}
-=======
               <IconButton
                 color="error"
                 size="small"
                 onClick={() => onDelete(job._id)}
->>>>>>> Fix broken features, security hardening, and UI consistency
                 sx={{ ml: 1 }}
               >
                 <DeleteIcon />
