@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useState } from 'react';
+=======
+import { useState, useEffect } from 'react';
+>>>>>>> Fix broken features, security hardening, and UI consistency
 import {
   Modal,
   Box,
@@ -22,7 +26,23 @@ const statusOptions = [
 export default function JobStatusModal({ open, onClose, job, onSave }) {
   const [status, setStatus] = useState(job.status);
   const [notes, setNotes] = useState(job.notes || '');
+<<<<<<< HEAD
   const [interviewDate, setInterviewDate] = useState(job.interviewDate || '');
+=======
+  const [interviewDate, setInterviewDate] = useState('');
+
+  // Sync form state whenever the modal opens or the job changes.
+  // Without this, re-opening the modal shows stale values.
+  useEffect(() => {
+    setStatus(job.status);
+    setNotes(job.notes || '');
+    setInterviewDate(
+      job.interviewDate
+        ? new Date(job.interviewDate).toISOString().slice(0, 16)
+        : ''
+    );
+  }, [job, open]);
+>>>>>>> Fix broken features, security hardening, and UI consistency
 
   const handleSubmit = () => {
     onSave({

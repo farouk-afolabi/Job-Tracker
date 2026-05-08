@@ -14,7 +14,11 @@ import {
 
 export default function JobFilters({ onSearch }) {
   const [filters, setFilters] = useState({
+<<<<<<< HEAD
     keyword: '',
+=======
+    keywords: '',
+>>>>>>> Fix broken features, security hardening, and UI consistency
     location: '',
     salary_min: '',
     salary_max: '',
@@ -39,7 +43,11 @@ export default function JobFilters({ onSearch }) {
 
   const handleClear = () => {
     setFilters({
+<<<<<<< HEAD
       keyword: '',
+=======
+      keywords: '',
+>>>>>>> Fix broken features, security hardening, and UI consistency
       location: '',
       salary_min: '',
       salary_max: '',
@@ -59,8 +67,13 @@ export default function JobFilters({ onSearch }) {
             <TextField
               fullWidth
               label="Job Title or Keywords"
+<<<<<<< HEAD
               value={filters.keyword}
               onChange={handleChange('keyword')}
+=======
+              value={filters.keywords}
+              onChange={handleChange('keywords')}
+>>>>>>> Fix broken features, security hardening, and UI consistency
               placeholder="e.g., Software Engineer, React Developer"
             />
           </Grid>

@@ -14,8 +14,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+<<<<<<< HEAD
       <AuthProvider>
         <Router>
+=======
+      <Router>
+        <AuthProvider>
+>>>>>>> Fix broken features, security hardening, and UI consistency
           <Box 
             sx={{ 
               minHeight: '100vh',
@@ -55,8 +60,13 @@ function App() {
               </Routes>
             </Container>
           </Box>
+<<<<<<< HEAD
         </Router>
       </AuthProvider>
+=======
+        </AuthProvider>
+      </Router>
+>>>>>>> Fix broken features, security hardening, and UI consistency
     </ThemeProvider>
   );
 }

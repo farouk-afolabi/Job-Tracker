@@ -38,7 +38,7 @@ UserSchema.methods.generateJWT = function() {
   return jwt.sign(
     { userId: this._id },
     process.env.JWT_SECRET,
-    { expiresIn: '30d' }
+    { expiresIn: process.env.JWT_LIFETIME || '30d' }
   );
 };
 

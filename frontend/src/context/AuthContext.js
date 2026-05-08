@@ -9,22 +9,37 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   // Initialize auth state
+=======
+  // On app load, check if a stored token is still valid.
+  // verifyToken() sends the token via the Authorization header automatically.
+>>>>>>> Fix broken features, security hardening, and UI consistency
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
+<<<<<<< HEAD
           // Verify token with backend 
           const userData = await verifyToken(token);
           setUser(userData);
         } catch (error) {
+=======
+          const userData = await verifyToken();
+          setUser(userData);
+        } catch {
+>>>>>>> Fix broken features, security hardening, and UI consistency
           localStorage.removeItem('token');
         }
       }
       setLoading(false);
     };
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> Fix broken features, security hardening, and UI consistency
     initializeAuth();
   }, []);
 
