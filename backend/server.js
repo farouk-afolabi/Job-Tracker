@@ -209,7 +209,7 @@ app.delete('/api/jobs/tracked/:id', authenticate, async (req, res) => {
 });
 
 // ======================
-// Job search via Adzuna API
+// Job search — Adzuna US, Adzuna CA, and Jooble in parallel
 // ======================
 app.get('/api/jobs/search', authenticate, async (req, res) => {
   try {
@@ -219,20 +219,59 @@ app.get('/api/jobs/search', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Keywords are required to search' });
     }
 
-    const response = await axios.get('https://api.adzuna.com/v1/api/jobs/us/search/1', {
-      params: {
-        app_id: process.env.ADZUNA_APP_ID,
-        app_key: process.env.ADZUNA_APP_KEY,
-        what: keywords,
-        where: location || '',
-        results_per_page: 20,
-      },
-    });
+    const adzunaParams = {
+      app_id: process.env.ADZUNA_APP_ID,
+      app_key: process.env.ADZUNA_APP_KEY,
+      what: keywords,
+      where: location || '',
+      results_per_page: 20,
+    };
 
-    res.json(response.data.results);
+    // allSettled means one failing source never blocks the others
+    const [usResult, caResult, joobleResult] = await Promise.allSettled([
+      axios.get('https://api.adzuna.com/v1/api/jobs/us/search/1', { params: adzunaParams }),
+      axios.get('https://api.adzuna.com/v1/api/jobs/ca/search/1', { params: adzunaParams }),
+      axios.post(`https://jooble.org/api/${process.env.JOOBLE_API_KEY}`, {
+        keywords,
+        location: location || '',
+        resultsOnPage: 20,
+      }),
+    ]);
+
+    const usJobs = usResult.status === 'fulfilled'
+      ? usResult.value.data.results.map(job => ({ ...job, country: 'US', source: 'Adzuna' }))
+      : [];
+
+    const caJobs = caResult.status === 'fulfilled'
+      ? caResult.value.data.results.map(job => ({ ...job, country: 'CA', source: 'Adzuna' }))
+      : [];
+
+    // Normalize Jooble's different field names to match the Adzuna shape
+    const joobleJobs = joobleResult.status === 'fulfilled'
+      ? (joobleResult.value.data.jobs || []).map(job => ({
+          id: job.link,
+          title: job.title,
+          company: { display_name: job.company || 'Unknown' },
+          location: { display_name: job.location },
+          description: job.snippet,
+          salary_min: null,
+          salary_max: null,
+          salary_string: job.salary || null,
+          redirect_url: job.link,
+          source: 'Jooble',
+        }))
+      : [];
+
+    const allJobs = [...usJobs, ...caJobs, ...joobleJobs];
+
+    if (allJobs.length === 0) {
+      return res.status(500).json({ error: 'All job sources failed to respond' });
+    }
+
+    res.json(allJobs);
   } catch (err) {
     console.error('Job search error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to fetch jobs from Adzuna' });
+    res.status(500).json({ error: 'Failed to fetch jobs' });
   }
 });
 
