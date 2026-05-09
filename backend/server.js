@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const axios = require('axios');
+const Anthropic = require('@anthropic-ai/sdk');
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const app = express();
 
@@ -137,6 +140,73 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 // Uses the authenticate middleware so it reads from the Authorization header.
 app.get('/api/auth/verify', authenticate, (req, res) => {
   res.json({ id: req.user._id, name: req.user.name, email: req.user.email });
+});
+
+// ======================
+// Profile routes
+// ======================
+
+app.get('/api/profile', authenticate, async (req, res) => {
+  res.json(req.user.profile || {});
+});
+
+app.put('/api/profile', authenticate, async (req, res) => {
+  try {
+    const { title, skills, experience } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profile: { title, skills, experience } },
+      { new: true }
+    );
+    res.json(user.profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save profile' });
+  }
+});
+
+// ======================
+// AI job match scoring
+// ======================
+
+app.post('/api/jobs/match', authenticate, async (req, res) => {
+  try {
+    const { jobTitle, jobCompany, jobDescription } = req.body;
+    const { title, skills, experience } = req.user.profile || {};
+
+    if (!skills && !experience) {
+      return res.status(400).json({ error: 'Complete your profile first so we can score the match.' });
+    }
+
+    const prompt = `You are evaluating how well a candidate matches a job posting. Respond with ONLY valid JSON — no explanation, no markdown.
+
+Candidate Profile:
+- Target role: ${title || 'Not specified'}
+- Skills: ${skills || 'Not specified'}
+- Experience: ${experience || 'Not specified'}
+
+Job: ${jobTitle} at ${jobCompany}
+Description: ${jobDescription?.slice(0, 1500) || 'No description provided'}
+
+Return this exact JSON shape:
+{
+  "score": <integer 0-100>,
+  "summary": "<one sentence verdict>",
+  "strengths": ["<matched skill or quality>"],
+  "gaps": ["<missing skill or requirement>"]
+}`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const result = JSON.parse(message.content[0].text);
+    res.json(result);
+  } catch (err) {
+    console.error('Match scoring error:', err.message);
+    res.status(500).json({ error: 'Failed to score job match' });
+  }
 });
 
 // ======================

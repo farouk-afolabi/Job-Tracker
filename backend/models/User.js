@@ -18,6 +18,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 6
+  },
+  profile: {
+    title:      { type: String, default: '' },
+    skills:     { type: String, default: '' },
+    experience: { type: String, default: '' },
   }
 });
 

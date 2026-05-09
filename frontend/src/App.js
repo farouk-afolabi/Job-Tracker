@@ -8,6 +8,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import JobBoard from './components/jobs/JobBoard';
 import Analytics from './components/analytics/Analytics';
+import Profile from './components/profile/Profile';
 import { Container, Box } from '@mui/material';
 import theme from './theme';
 
@@ -51,6 +52,11 @@ function App() {
                 <Route path="/analytics" element={
                   <ProtectedRoute>
                     <Analytics />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 } />
 

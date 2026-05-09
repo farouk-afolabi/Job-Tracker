@@ -41,6 +41,18 @@ export const fetchJobs = (filters = {}) => {
   return apiCall(`/jobs/search?${queryParams}`);
 };
 
+// Profile
+export const getProfile = () => apiCall('/profile');
+export const saveProfile = (profile) =>
+  apiCall('/profile', { method: 'PUT', body: JSON.stringify(profile) });
+
+// AI match scoring
+export const matchJob = (jobTitle, jobCompany, jobDescription) =>
+  apiCall('/jobs/match', {
+    method: 'POST',
+    body: JSON.stringify({ jobTitle, jobCompany, jobDescription }),
+  });
+
 // Job tracking
 export const trackJob = (jobData) =>
   apiCall('/jobs/track', { method: 'POST', body: JSON.stringify(jobData) });
