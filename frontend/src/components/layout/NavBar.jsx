@@ -18,6 +18,9 @@ export default function NavBar() {
             <Button color="inherit" component={Link} to="/dashboard">
               Dashboard
             </Button>
+            <Button color="inherit" component={Link} to="/analytics">
+              Analytics
+            </Button>
             <Button color="inherit" onClick={logout}>
               Logout
             </Button>

@@ -7,6 +7,7 @@ import ProtectedRoute from './components/layout/ProtectedRoutes';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import JobBoard from './components/jobs/JobBoard';
+import Analytics from './components/analytics/Analytics';
 import { Container, Box } from '@mui/material';
 import theme from './theme';
 
@@ -46,6 +47,13 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
+                {/* Protected routes */}
+                <Route path="/analytics" element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                } />
+
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
