@@ -3,6 +3,7 @@ import { Box, Typography, CircularProgress, Alert, Button, Paper } from '@mui/ma
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import DownloadIcon from '@mui/icons-material/Download';
 import { getTrackedJobs, updateTrackedJob, deleteTrackedJob, getReminders } from '../../services/api';
+import TrackedJobCard from './TrackedJobCard';
 
 function exportToCSV(jobs) {
   const headers = ['Title', 'Company', 'Location', 'Status', 'Notes', 'Salary Min', 'Salary Max', 'Date Tracked', 'Last Status Change'];
@@ -30,8 +31,6 @@ function exportToCSV(jobs) {
   a.click();
   URL.revokeObjectURL(url);
 }
-import TrackedJobCard from './TrackedJobCard';
-
 // refreshKey comes from JobBoard — whenever it increments, we re-fetch.
 // This is how tracking a new job from the Search tab instantly shows up here.
 export default function TrackedJobsPanel({ refreshKey }) {
