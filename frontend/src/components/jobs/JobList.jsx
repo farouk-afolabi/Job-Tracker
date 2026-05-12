@@ -10,11 +10,13 @@ export default function JobList({ jobs, loading, onTrack, isAuthenticated }) {
     );
   }
 
-  if (!jobs || jobs.length === 0) {
+  if (!jobs) return null;
+
+  if (jobs.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <Typography variant="h6" color="textSecondary">
-          No jobs found. Try adjusting your search criteria.
+          No jobs found. Try different keywords or broaden your location.
         </Typography>
       </Box>
     );
@@ -25,9 +27,9 @@ export default function JobList({ jobs, loading, onTrack, isAuthenticated }) {
       <Typography variant="h6" gutterBottom>
         Found {jobs.length} job{jobs.length !== 1 ? 's' : ''}
       </Typography>
-      {jobs.map((job) => (
+      {jobs.map((job, index) => (
         <JobCard
-          key={job.id}
+          key={job.id || job.redirect_url || index}
           job={job}
           onTrack={onTrack}
           isAuthenticated={isAuthenticated}

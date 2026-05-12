@@ -8,7 +8,7 @@ import { fetchJobs, trackJob } from '../../services/api';
 
 export default function JobBoard() {
   const { user } = useAuth();
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [trackError, setTrackError] = useState('');

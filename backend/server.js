@@ -33,11 +33,17 @@ app.use(cors({
 app.use(express.json());
 
 // Rate limiter for auth endpoints — prevents brute-force attacks.
-// Allows 20 attempts per 15 minutes per IP.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Too many requests, please try again later' },
+});
+
+// Rate limiter for AI match endpoint — limits cost exposure.
+const matchLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  message: { error: 'Match scoring limit reached. Try again in an hour.' },
 });
 
 // Database connection
@@ -168,7 +174,7 @@ app.put('/api/profile', authenticate, async (req, res) => {
 // AI job match scoring
 // ======================
 
-app.post('/api/jobs/match', authenticate, async (req, res) => {
+app.post('/api/jobs/match', authenticate, matchLimiter, async (req, res) => {
   try {
     const { jobTitle, jobCompany, jobDescription } = req.body;
     const { title, skills, experience } = req.user.profile || {};
@@ -201,7 +207,9 @@ Return this exact JSON shape:
       messages: [{ role: 'user', content: prompt }],
     });
 
-    const result = JSON.parse(message.content[0].text);
+    // Strip markdown code fences if Claude wraps the JSON in them
+    const raw = message.content[0].text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+    const result = JSON.parse(raw);
     res.json(result);
   } catch (err) {
     console.error('Match scoring error:', err.message);

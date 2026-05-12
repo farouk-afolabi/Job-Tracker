@@ -3,7 +3,7 @@ import {
   Card, CardContent, Typography, Button, Chip, Box,
   CircularProgress, Collapse, Divider, Alert
 } from '@mui/material';
-import { matchJob } from '../../services/api';
+import { matchJob, getProfile } from '../../services/api';
 
 const sourceChip = {
   'Adzuna-US': { label: 'USA',    color: 'primary' },
@@ -42,6 +42,12 @@ export default function JobCard({ job, onTrack, isAuthenticated }) {
     setScoring(true);
     setMatchError('');
     try {
+      // Check profile is set up before calling the AI — gives a clear message instead of a generic error
+      const profile = await getProfile();
+      if (!profile.skills && !profile.experience) {
+        setMatchError('Set up your profile first (Profile page) so we can score this match.');
+        return;
+      }
       const result = await matchJob(
         job.title,
         job.company?.display_name || job.company,
