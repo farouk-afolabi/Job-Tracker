@@ -251,6 +251,7 @@ app.post('/api/jobs/track', authenticate, async (req, res) => {
       url,
       user: req.user._id,
       status: 'interested',
+      statusHistory: [{ status: 'interested', changedAt: new Date() }],
     });
 
     res.status(201).json(job);
@@ -277,7 +278,10 @@ app.put('/api/jobs/tracked/:id', authenticate, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Job not found' });
 
     const update = { status, notes, interviewDate };
-    if (status && status !== existing.status) update.statusChangedAt = new Date();
+    if (status && status !== existing.status) {
+      update.statusChangedAt = new Date();
+      update.$push = { statusHistory: { status, changedAt: new Date(), notes } };
+    }
 
     const job = await TrackedJob.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
     res.json(job);

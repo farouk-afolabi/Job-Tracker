@@ -29,6 +29,14 @@ const TrackedJobSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  statusHistory: [{
+    status: {
+      type: String,
+      enum: ['interested', 'applied', 'interview', 'offer', 'rejected'],
+    },
+    changedAt: { type: Date, default: Date.now },
+    notes: String,
+  }],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

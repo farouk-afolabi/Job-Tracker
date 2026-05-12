@@ -1,7 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Alert, Button, Paper } from '@mui/material';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import DownloadIcon from '@mui/icons-material/Download';
 import { getTrackedJobs, updateTrackedJob, deleteTrackedJob, getReminders } from '../../services/api';
+
+function exportToCSV(jobs) {
+  const headers = ['Title', 'Company', 'Location', 'Status', 'Notes', 'Salary Min', 'Salary Max', 'Date Tracked', 'Last Status Change'];
+  const rows = jobs.map(job => [
+    job.title,
+    job.company,
+    job.location || '',
+    job.status,
+    job.notes || '',
+    job.salaryMin || '',
+    job.salaryMax || '',
+    new Date(job.createdAt).toLocaleDateString(),
+    new Date(job.statusChangedAt).toLocaleDateString(),
+  ]);
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `job-tracker-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 import TrackedJobCard from './TrackedJobCard';
 
 // refreshKey comes from JobBoard — whenever it increments, we re-fetch.
@@ -85,9 +113,21 @@ export default function TrackedJobsPanel({ refreshKey }) {
         <Typography variant="h6">
           My Tracked Jobs ({trackedJobs.length})
         </Typography>
-        <Button variant="outlined" onClick={loadTrackedJobs}>
-          Refresh
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {trackedJobs.length > 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={() => exportToCSV(trackedJobs)}
+            >
+              Export CSV
+            </Button>
+          )}
+          <Button variant="outlined" size="small" onClick={loadTrackedJobs}>
+            Refresh
+          </Button>
+        </Box>
       </Box>
 
       {error && (
