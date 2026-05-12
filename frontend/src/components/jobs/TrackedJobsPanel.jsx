@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress, Alert, Button } from '@mui/material';
-import { getTrackedJobs, updateTrackedJob, deleteTrackedJob } from '../../services/api';
+import { Box, Typography, CircularProgress, Alert, Button, Paper } from '@mui/material';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import { getTrackedJobs, updateTrackedJob, deleteTrackedJob, getReminders } from '../../services/api';
 import TrackedJobCard from './TrackedJobCard';
 
 // refreshKey comes from JobBoard — whenever it increments, we re-fetch.
 // This is how tracking a new job from the Search tab instantly shows up here.
 export default function TrackedJobsPanel({ refreshKey }) {
   const [trackedJobs, setTrackedJobs] = useState([]);
+  const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,8 +20,9 @@ export default function TrackedJobsPanel({ refreshKey }) {
     try {
       setLoading(true);
       setError('');
-      const jobs = await getTrackedJobs();
+      const [jobs, remind] = await Promise.all([getTrackedJobs(), getReminders()]);
       setTrackedJobs(jobs);
+      setReminders(remind);
     } catch (err) {
       setError(err.message || 'Failed to load tracked jobs');
     } finally {
@@ -56,6 +59,28 @@ export default function TrackedJobsPanel({ refreshKey }) {
 
   return (
     <Box>
+      {reminders.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{ p: 2, mb: 3, bgcolor: 'warning.light', borderRadius: 2 }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <NotificationsActiveIcon color="warning" fontSize="small" />
+            <Typography variant="subtitle2" fontWeight="bold">
+              {reminders.length} application{reminders.length > 1 ? 's' : ''} may need a follow-up
+            </Typography>
+          </Box>
+          {reminders.map(job => {
+            const days = Math.floor((Date.now() - new Date(job.statusChangedAt)) / 86400000);
+            return (
+              <Typography key={job._id} variant="body2" sx={{ ml: 3.5 }}>
+                • {job.title} at {job.company} — {days} days with no update
+              </Typography>
+            );
+          })}
+        </Paper>
+      )}
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">
           My Tracked Jobs ({trackedJobs.length})

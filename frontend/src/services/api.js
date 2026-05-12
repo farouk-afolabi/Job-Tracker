@@ -41,6 +41,9 @@ export const fetchJobs = (filters = {}) => {
   return apiCall(`/jobs/search?${queryParams}`);
 };
 
+// Reminders
+export const getReminders = () => apiCall('/jobs/reminders');
+
 // Profile
 export const getProfile = () => apiCall('/profile');
 export const saveProfile = (profile) =>

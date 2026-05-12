@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Button, AppBar, Toolbar, Typography } from '@mui/material';
+import { Button, AppBar, Toolbar, Typography, Badge } from '@mui/material';
+import { getReminders } from '../../services/api';
 
 export default function NavBar() {
   const { user, logout } = useAuth();
+  const [reminderCount, setReminderCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    getReminders()
+      .then(r => setReminderCount(r.length))
+      .catch(() => {});
+  }, [user]);
 
   return (
     <AppBar position="static">
@@ -16,7 +26,9 @@ export default function NavBar() {
         {user ? (
           <>
             <Button color="inherit" component={Link} to="/dashboard">
-              Dashboard
+              <Badge badgeContent={reminderCount} color="error">
+                Dashboard
+              </Badge>
             </Button>
             <Button color="inherit" component={Link} to="/analytics">
               Analytics

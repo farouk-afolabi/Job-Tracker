@@ -25,6 +25,10 @@ const TrackedJobSchema = new mongoose.Schema({
   },
   notes: String,
   interviewDate: Date,
+  statusChangedAt: {
+    type: Date,
+    default: Date.now,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

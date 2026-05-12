@@ -6,8 +6,19 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const axios = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
+const cron = require('node-cron');
+const nodemailer = require('nodemailer');
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Email transporter — only active when EMAIL_USER + EMAIL_PASS are set in env.
+// Works with Gmail app passwords or any SMTP provider.
+const mailer = process.env.EMAIL_USER && process.env.EMAIL_PASS
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    })
+  : null;
 
 const app = express();
 
@@ -262,12 +273,13 @@ app.get('/api/jobs/tracked', authenticate, async (req, res) => {
 app.put('/api/jobs/tracked/:id', authenticate, async (req, res) => {
   try {
     const { status, notes, interviewDate } = req.body;
-    const job = await TrackedJob.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      { status, notes, interviewDate },
-      { new: true, runValidators: true }
-    );
-    if (!job) return res.status(404).json({ error: 'Job not found' });
+    const existing = await TrackedJob.findOne({ _id: req.params.id, user: req.user._id });
+    if (!existing) return res.status(404).json({ error: 'Job not found' });
+
+    const update = { status, notes, interviewDate };
+    if (status && status !== existing.status) update.statusChangedAt = new Date();
+
+    const job = await TrackedJob.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
     res.json(job);
   } catch (err) {
     console.error('Update job error:', err);
@@ -350,6 +362,92 @@ app.get('/api/jobs/search', authenticate, async (req, res) => {
   } catch (err) {
     console.error('Job search error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
+});
+
+// ======================
+// Follow-up reminders
+// ======================
+
+const FOLLOWUP_DAYS = 14;
+
+function getStaleDate() {
+  const d = new Date();
+  d.setDate(d.getDate() - FOLLOWUP_DAYS);
+  return d;
+}
+
+// Returns the logged-in user's applied jobs that haven't moved in 14+ days
+app.get('/api/jobs/reminders', authenticate, async (req, res) => {
+  try {
+    const stale = await TrackedJob.find({
+      user: req.user._id,
+      status: 'applied',
+      statusChangedAt: { $lt: getStaleDate() },
+    }).sort('statusChangedAt');
+    res.json(stale);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch reminders' });
+  }
+});
+
+// Daily cron — runs at 9 AM every day.
+// Finds every user with stale applications and sends one summary email.
+cron.schedule('0 9 * * *', async () => {
+  if (!mailer) return;
+
+  try {
+    const staleDate = getStaleDate();
+    const staleJobs = await TrackedJob.find({
+      status: 'applied',
+      statusChangedAt: { $lt: staleDate },
+    }).populate('user', 'name email');
+
+    // Group by user
+    const byUser = staleJobs.reduce((acc, job) => {
+      const uid = job.user._id.toString();
+      if (!acc[uid]) acc[uid] = { user: job.user, jobs: [] };
+      acc[uid].jobs.push(job);
+      return acc;
+    }, {});
+
+    for (const { user, jobs } of Object.values(byUser)) {
+      const jobRows = jobs.map(j =>
+        `<tr>
+          <td style="padding:8px;border-bottom:1px solid #eee">${j.title}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee">${j.company}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee">${Math.floor((Date.now() - j.statusChangedAt) / 86400000)} days ago</td>
+        </tr>`
+      ).join('');
+
+      await mailer.sendMail({
+        from: `"Job Tracker" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: `${jobs.length} application${jobs.length > 1 ? 's' : ''} may need a follow-up`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:auto">
+            <h2 style="color:#1976d2">Follow-up Reminder</h2>
+            <p>Hi ${user.name}, these applications haven't had an update in ${FOLLOWUP_DAYS}+ days:</p>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="background:#f5f5f5">
+                  <th style="padding:8px;text-align:left">Role</th>
+                  <th style="padding:8px;text-align:left">Company</th>
+                  <th style="padding:8px;text-align:left">Applied</th>
+                </tr>
+              </thead>
+              <tbody>${jobRows}</tbody>
+            </table>
+            <p style="margin-top:24px;color:#666">
+              Log in to update your application statuses or add notes.
+            </p>
+          </div>`,
+      });
+    }
+
+    console.log(`Reminder emails sent to ${Object.keys(byUser).length} users`);
+  } catch (err) {
+    console.error('Cron email error:', err.message);
   }
 });
 
